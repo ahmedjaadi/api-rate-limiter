@@ -1,0 +1,8 @@
+{
+  "properties": [
+    {
+      "name": "custom.cacheManager.redis.cache.key",
+      "type": "java.lang.String",
+      "description": "Description for custom.cacheManager.redis.cache.key."
+  }
+] }

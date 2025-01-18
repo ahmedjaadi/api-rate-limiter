@@ -1,0 +1,88 @@
+﻿= API Rate Limiter
+
+The application to demonstrate the idea of rate limiting API requests from the API consumer.
+The application accepts any HTTP GET request whose url matches with /api/v1/**, the request will be checked against the rules, if it fails an
+HTTP response with the 429 code will be returned, and if it passes it will forward to the protected API service
+(for simplicity, the hypothetical service has only one and point /api_service/api/v1)
+
+== How to Run
+
+Run it with Java 17. The app makes use of Spring runtime profiles feature, the app understands two valid profiles
+
+* `standalone`: This is the default profile if no specific profiles are supplied, this is meant to run when no distributed cache is available (more on the article)
+* `distributed`: This profile is meant when Redis is available, Redis must be up and running and accessible by the app
+  before running the app, by default the app is looking for the locally running Redis on port 6379, but this can be
+  changed either in the link:src/main/resources/application-distributed.properties[application-distributed.properties] the property name is `custom.cacheManager.redis.connection.url` or while running the app by setting JVM system property
+
+Two steps need to run the application
+
+. Build and package the app with the maven wrapper, at the project root directory run `.
++
+[source]
+----
+       ./mvnw clean package
+----
+
+. Once the app is build and packaged successfully.
+    .. `standalone` profile: run the app with this command,
++
+--
+[source]
+----
+       java -jar ./target/api-rate-limiter-0.0.1-SNAPSHOT.jar
+----
+
+as mentioned earlier this will run with the `standalone` profile.
+--
+.. `distributed` profile: To activate distributed profile, Redis must be running and accessible by the app, then run
+   this command
++
+--
+[source]
+----
+       java -jar -Dspring.profiles.active=distributed ./target/api-rate-limiter-0.0.1-SNAPSHOT.jar
+----
+--
+
+== How to test
+The app is a tenant-based, that is only request with valid tenant will be accepted, we have a very simplistic way to
+identify the tenant, an HTTP header with key `X-tenant-id`,
+we have three valid hypothetical tenants, `amazon`, `google` and `meta`, The app will process any endpoint that
+matches `/api/v1/**` although the only endpoint with a valid response is `/api/v1/hello`.
+
+=== With *curl* command
+
+To send an HTTP request and test user the following `curl` command
+
+[source]
+----
+       curl -X GET --location "http://localhost:${PORT}/api/v1/hello" \
+        -H "X-tenant-id: amazon"
+----
+
+PORT value will be `8082` for the `standalone` profile and `8081` for the `distributed` one, the tenant id can also be
+changed to either `meta` or  `google`
+
+=== With a JetBrains IDE
+If you are an IntelliJ IDEA user or any flavor of JetBrains IDEs, I have link:http/get-hello.http[this http file] for your convenience.
+To switch between the two running apps active `standalone` and `distributed` profiles,
+you can switch between `standalone` and `distributed` environments respectively (you can find a dropdown on top of the IDE with the label "*Run with:*")
+
+== Valid Tenant and their limits
+
+we have a system-wide limit that is applicable to all tenants, bellow table gives details
+
+
+|===
+| Number of requests allowed | Time span
+| 5                          | 15 sec
+|===
+Below the table for valid tenants and their limits
+
+
+|===
+| Tenant Id | Monthly limit | Duration for a time window | Allowed requests for time window limit
+| _amazon_  | 5             | 1 millisecond                 | 1
+| _google_  | 5             | 2 seconds                     | 1
+| _meta_    | 5             | 1 minute                      | 1
+|===
