@@ -141,9 +141,7 @@ The application revolves around a few core domain entities:
 ### Service Interactions
 
 -   **TenantBucketProvider**: This is the actual service that the **Rate Limiter** relies on to make the decision whether to let a request through or not. Manages the limit states for tenants. It has two implementations:
-
     1.  **StandaloneBucketProvider**: Uses in-memory storage, suitable for standalone applications but not scalable.
-
     2.  **RedisBucketProvider**: Uses Redis for distributed environments, enabling horizontal scalability.
 
 -   **ApiServerSender**: Forwards valid requests to the protected API server.
