@@ -1,4 +1,4 @@
-package api_rate_limiter.controller;
+package request_processor.controller;
 
 import api_rate_limiter.exception.api_error.ApiError;
 import api_rate_limiter.service.RateLimitAlgorithm;
