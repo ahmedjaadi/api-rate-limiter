@@ -1,14 +1,21 @@
 = Designing and Implementing an API Rate Limiter
+Ahmed Ali Rashid <https://github.com/ahmedjaadi>
+1.0, Jan 19, 2025: API Rate Limiter
+:toc: preamble
+:icons: font
+:git-repo-url: https://github.com/ahmedjaadi/api-rate-limiter
 
-== Introduction to API Rate Limiting
+* The implementation is available on {git-repo-url}[GitHub].
+
+== Introduction
 
 APIs serve as the backbone of modern software systems, enabling communication between different applications. However, without proper control, APIs can be overwhelmed by excessive requests, potentially leading to degraded performance or even downtime. This is where API rate limiting comes into play.
 
 API rate limiting is a mechanism that restricts the number of requests a client can make to an API within a specified time period.
 By doing so, it ensures fair usage among clients, protects system resources, and maintains service stability.
-In this article, we will explore the architecture, design,
+In this article, we will first explore important concepts(components) relevant to API rate limiting, and then we see the design
 and implementation of an API rate limiter using the Spring framework and Redis.
-The full implementation code is available on link:https://github.com/ahmedjaadi/api-rate-limiter[GitHub].
+The full implementation code is available on {git-repo-url}[GitHub].
 
 == Why Should You Rate Limit Your API?
 
@@ -74,32 +81,6 @@ Soft throttling provides a more lenient approach, especially for premium or trus
 
 The choice between hard and soft throttling depends on business requirements. For instance, a subscription-based service might implement soft throttling for premium users to enhance their experience, while applying hard throttling for standard users.
 
-== Designing the Application
-
-Our application design includes the following key concepts:
-
-=== Domain Modeling
-- **RateLimit**: Defines the properties of a rate limit, such as capacity and time period.
-- **TenantRateLimit**: Represents the rate limits applicable to a specific tenant. It includes properties for monthly and time-window limits.
-- **Bucket**: Tracks the live state of rate limits for each tenant. There is also a system-wide bucket for global limits.
-
-image::application_design.png[400,400,title="Application Design", align="center"]
-
-=== Service Interactions
-- **TenantBucketProvider**: Manages the limit states for tenants. It has two implementations:
-- `StandaloneBucketProvider`: Uses in-memory storage, suitable for standalone applications but not scalable.
-- `RedisBucketProvider`: Uses Redis for distributed environments, enabling horizontal scalability.
-- **ApiServerSender**: Forwards valid requests to the protected API server.
-
-=== Endpoints
-The application includes a `RateLimitController`, which processes requests matching `/api/v1/**`. It checks the tenant's bucket state using the `TenantBucketProvider`. If the request is within limits, it is forwarded; otherwise, it is throttled.
-
-=== Profiles
-The application supports two runtime profiles:
-
-- `standalone`: Uses the `StandaloneBucketProvider`.
-- `distributed`: Uses the `RedisBucketProvider`.
-
 == Client Responsibilities
 
 To ensure the effectiveness of the rate limiter, clients should adopt best practices:
@@ -107,6 +88,54 @@ To ensure the effectiveness of the rate limiter, clients should adopt best pract
 - **Exponential Backoff**: Retry requests after progressively longer delays when encountering failures. This reduces server load and avoids immediate retries.
 - **Jitter**: Add random delays (Jitter) to retry intervals to prevent simultaneous retries from multiple clients, which can overwhelm the server.
 
+== Designing the Application
+
+=== High-Level Architecture
+
+Our application's architecture is simplified for clarity and practicality, with some components removed or merged:
+
+- The *RateLimiter* (under the *api_rate_limiter* package) and *RequestProcessor* (under the *request_processor* package) are combined into a single Spring Boot application. In real-world scenarios, these two components might exist as separate applications.
+- The application does not include a *Load Balancer* or a *Queue*.
+- *Rules* are hard-coded, eliminating the need for a *Rules Service* and a *Rules Engine* Database.
+- Distributed caching is supported using *Redis*. However, for scenarios where *Redis* is unavailable, an alternative approach is provided with a standalone runtime profile, where rules are stored in the application's memory.
+
+All applicable rules, including system-wide and tenant-specific rules, are applied dynamically. This ensures fair and precise enforcement of rate limits for every tenant.
+
+
+=== Domain Modeling
+The application revolves around a few core domain entities:
+
+- *RateLimit*: Defines the properties of a rate limit, such as capacity and time period.
+- *TenantRateLimit*: Represents the rate limits applicable to a specific tenant. It includes properties for monthly and time-window limits.
+- *Bucket*: Tracks the live state of rate limits for each tenant. There is also a system-wide bucket for global limits.
+
+image::domain_model.png[title="Domain Model", align="center"]
+
+=== Service Interactions
+- *TenantBucketProvider*: This is the actual service that the *Rate Limiter* relies on to make the decision whether to let a request through or not. Manages the limit states for tenants. It has two implementations:
+. *StandaloneBucketProvider*: Uses in-memory storage, suitable for standalone applications but not scalable.
+. *RedisBucketProvider*: Uses Redis for distributed environments, enabling horizontal scalability.
+- *ApiServerSender*: Forwards valid requests to the protected API server.
+
+image::services_interaction.png[title="Services Interactions", align="center"]
+
+=== Endpoints
+The application includes a `RateLimitController`, which processes requests matching `/api/v1/**`. It checks the tenant's bucket state using the `TenantBucketProvider`. If the request is within limits, it is forwarded; otherwise, it is throttled.
+
+=== Throttling
+Again, for the sake of simplicity, we *Hard-Throttle* requests that exceed the tenant's limits
+
+=== Profiles
+The application supports two runtime profiles:
+
+- `standalone`: Uses the `StandaloneBucketProvider`.
+- `distributed`: Uses the `RedisBucketProvider`.
+
+
 == Conclusion
 
-API rate limiting is essential for maintaining the stability, security, and fairness of APIs. By understanding its architecture, scaling mechanisms, and implementation strategies, developers can design robust systems that handle diverse usage patterns effectively. For a hands-on demonstration, check out the implementation code on https://github.com/ahmedjaadi/api-rate-limiter[GitHub].
+API rate limiting is essential for maintaining the stability, security, and fairness of APIs.
+By understanding its architecture, scaling mechanisms, and implementation strategies,
+developers can design robust systems that handle diverse usage patterns effectively.
+For a hands-on demonstration,
+check out the implementation code on  {git-repo-url}[GitHub].
