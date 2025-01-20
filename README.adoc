@@ -1,8 +1,13 @@
 ﻿= API Rate Limiter
+:dev-article-url: https://dev.to/ahmedjaad/designing-and-implementing-an-api-rate-limiter-1f9m
+:linkedin-article-url: https://www.linkedin.com/pulse/designing-implementing-api-rate-limiter-ahmed-ali-rashid-pemef
 
-The application to demonstrate the idea of rate limiting API requests from the API consumer.
-The application accepts any HTTP GET request whose url matches with /api/v1/**, the request will be checked against the rules, if it fails an
-HTTP response with the 429 code will be returned, and if it passes it will forward to the protected API service
+This is the implementation of the design explained in the article was published on {dev-article-url}[Dev Community] and {linkedin-article-url}[LinkedIn].
+The article was originally written in AsciiDoc link:docs/api-rate-limiter.adoc[here]
+
+The application demonstrates the idea of rate limiting API requests from an API consumer, It accepts any HTTP GET request whose url matches  /api/v1/**.
+The request will be checked against the rules, if it fails, an
+HTTP response with the 429 code will be returned. If it passes, it will forward to the protected API service
 (for simplicity, the hypothetical service has only one and point /api_service/api/v1)
 
 == How to Run
@@ -34,8 +39,7 @@ Two steps need to run the application
 
 as mentioned earlier this will run with the `standalone` profile.
 --
-.. `distributed` profile: To activate distributed profile, Redis must be running and accessible by the app, then run
-   this command
+.. `distributed` profile: To activate distributed profile, Redis must be up and running and accessible by the app, then run this command
 +
 --
 [source]
