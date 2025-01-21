@@ -2,7 +2,7 @@
 :dev-article-url: https://dev.to/ahmedjaad/designing-and-implementing-an-api-rate-limiter-1f9m
 :linkedin-article-url: https://www.linkedin.com/pulse/designing-implementing-api-rate-limiter-ahmed-ali-rashid-pemef
 
-This is the implementation of the design explained in the article was published on {dev-article-url}[Dev Community] and {linkedin-article-url}[LinkedIn].
+This is the implementation of the design explained in the article published on {dev-article-url}[Dev Community] and {linkedin-article-url}[LinkedIn].
 The article was originally written in AsciiDoc link:docs/api-rate-limiter.adoc[here]
 
 The application demonstrates the idea of rate limiting API requests from an API consumer, It accepts any HTTP GET request whose url matches  /api/v1/**.
